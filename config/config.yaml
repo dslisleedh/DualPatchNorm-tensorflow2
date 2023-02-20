@@ -26,7 +26,7 @@ hydra:
 
   sweep:
     dir: ./logs/${now:%Y-%m-%d}/${now:%H-%M-%S}
-    subdir: ''
+    subdir: /${hydra.job.num}
 
   job:
     chdir: True
