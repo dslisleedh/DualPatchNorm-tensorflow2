@@ -23,16 +23,17 @@ class ViT(tf.keras.models.Model):
             tf.linspace(0., config.drop_rate, config.n_blocks * 2), (config.n_blocks, 2)
         )
         self.feature_extractor = tf.keras.Sequential([
-            ViTBlock(config.n_heads, config.expansion_rate, drop_rates[i])
+            ViTBlock(config.n_heads, config.expansion_rate, [float(d_r) for d_r in drop_rates[i]])
             for i in range(config.n_blocks)
         ] + [
-            tf.keras.layers.GlobalAvgPool1D(),
+            tf.keras.layers.Lambda(lambda x: tf.gather(x, 0, axis=1)),
             tf.keras.layers.LayerNormalization()
         ])
         self.classifier = tf.keras.layers.Dense(
-            config.n_labels, kernel_initializer=tf.keras.initializers.zeros
+            config.n_labels, kernel_initializer=tf.keras.initializers.zeros, activation='softmax'
         )
 
+    @tf.function(jit_compile=True)
     def call(self, inputs: tf.Tensor, **kwargs) -> tf.Tensor:
         patch = self.patch_embedding(inputs)
         feats = self.positional_encoding(
@@ -44,4 +45,10 @@ class ViT(tf.keras.models.Model):
         feats = self.feature_extractor(feats)
         y_hat = self.classifier(feats)
         return y_hat
-    
+
+    def get_config(self):
+        return self.config
+
+    @classmethod
+    def from_config(cls, config, **kwargs):
+        return cls(config)

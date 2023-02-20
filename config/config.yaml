@@ -1,0 +1,32 @@
+hpo:
+  True
+
+hparams:
+  patch_size: (16, 16)
+  n_filters: 128
+  norm: dual
+  n_heads: 8
+  n_blocks: 12
+  drop_rate: .1
+  expansion_rate: 4
+  n_labels: 10
+
+  batch_size: 64
+  learning_rate: 1e-4
+
+  epochs: 500
+
+defaults:
+  - override hydra/job_logging: colorlog
+  - override hydra/hydra_logging: colorlog
+
+hydra:
+  run:
+    dir: ./logs/${now:%Y-%m-%d}/${now:%H-%M-%S}
+
+  sweep:
+    dir: ./logs/${now:%Y-%m-%d}/${now:%H-%M-%S}
+    subdir: ''
+
+  job:
+    chdir: True

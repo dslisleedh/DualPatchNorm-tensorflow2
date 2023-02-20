@@ -36,11 +36,14 @@ class PatchEmbedding(tf.keras.layers.Layer):
         config = super().get_config()
         config.update({
             "patch_size": self.patch_size,
-            "in_channels": self.in_channels,
-            "out_channels": self.out_channels,
+            "n_filters": self.n_filters,
             "norm": self.norm,
         })
         return config
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
 
 
 class PositionalEncoding(tf.keras.layers.Layer):
@@ -59,10 +62,11 @@ class PositionalEncoding(tf.keras.layers.Layer):
 
     def get_config(self):
         config = super().get_config()
-        config.update({
-            "pe": self.pe,
-        })
         return config
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
 
 
 class MHSA(tf.keras.layers.Layer):
@@ -97,6 +101,10 @@ class MHSA(tf.keras.layers.Layer):
         })
         return config
 
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
+
 
 class MLP(tf.keras.layers.Layer):
     def __init__(self, expansion_rate: int = 4):
@@ -121,6 +129,10 @@ class MLP(tf.keras.layers.Layer):
         })
         return config
 
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
+
 
 class ViTBlock(tf.keras.layers.Layer):
     def __init__(self, n_heads: int, expansion_rate: int, drop_rate: Sequence[float]):
@@ -129,12 +141,12 @@ class ViTBlock(tf.keras.layers.Layer):
         self.expansion_rate = expansion_rate
         self.drop_rate = drop_rate
 
-        self.spatial_drop = tfa.layers.StochasticDepth(float(1. - drop_rate[0]))
+        self.spatial_drop = tfa.layers.StochasticDepth(1. - drop_rate[0])
         self.mhsa = MHSA(n_heads)
-        self.channel_drop = tfa.layers.StochasticDepth(float(1. - drop_rate[1]))
+        self.channel_drop = tfa.layers.StochasticDepth(1. - drop_rate[1])
         self.mlp = MLP(expansion_rate)
 
-    def call(self, inputs, **kwargs) -> tf.Tensor:
+    def call(self, inputs: tf.Tensor, **kwargs) -> tf.Tensor:
         x = self.spatial_drop([inputs, self.mhsa(inputs)])
         x = self.channel_drop([x, self.mlp(x)])
         return x
@@ -147,3 +159,7 @@ class ViTBlock(tf.keras.layers.Layer):
             "drop_rate": self.drop_rate,
         })
         return config
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
