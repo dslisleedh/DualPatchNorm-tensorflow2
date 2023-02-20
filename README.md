@@ -12,7 +12,7 @@ Not completed codes.
     conda activate dpn
     train.py 
 
-Default config is set run hpo that takes lots of time.  
+Default config is set run HPO that takes lots of time.  
 Disable HPO if you just want to run code for once. 
 
     train.py hpo=False hparams.$ANY_HPARAMS_IN_CONFIG=...

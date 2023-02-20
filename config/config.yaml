@@ -2,19 +2,21 @@ hpo:
   True
 
 hparams:
-  patch_size: (16, 16)
+  patch_size:
+    - 16
+    - 16
   n_filters: 128
   norm: dual
   n_heads: 8
   n_blocks: 12
-  drop_rate: .1
+  drop_rate: 0.1
   expansion_rate: 4
-  n_labels: 10
+  n_labels: 1000
 
-  batch_size: 64
-  learning_rate: 1e-4
+  batch_size: 512
+  learning_rate: 1e-3
 
-  epochs: 500
+  epochs: 100
 
 defaults:
   - override hydra/job_logging: colorlog
