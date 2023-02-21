@@ -45,10 +45,3 @@ class ViT(tf.keras.models.Model):
         feats = self.feature_extractor(feats)
         y_hat = self.classifier(feats)
         return y_hat
-
-    def get_config(self):
-        return self.config
-
-    @classmethod
-    def from_config(cls, config, **kwargs):
-        return cls(config)

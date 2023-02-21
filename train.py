@@ -41,20 +41,22 @@ def train(config):
     optimizer = tfa.optimizers.AdaBelief(learning_rate=scheduler)
     model.compile(
         optimizer=optimizer, loss='sparse_categorical_crossentropy',
-        metrics=['sparse_categorical_accuracy', src.SparseF1Score(num_classes=1000, average='macro')]
+        metrics=[
+            'sparse_categorical_accuracy', tf.keras.metrics.SparseTopKCategoricalAccuracy(k=5)
+        ]
     )
 
     # Create callbacks and run training
     callbacks = [
         tf.keras.callbacks.EarlyStopping(
-            monitor='val_f1_score', patience=10, restore_best_weights=True, mode='max'
+            monitor='val_sparse_top_k_categorical_accuracy', patience=10, restore_best_weights=True, mode='max'
         ),
         tf.keras.callbacks.TensorBoard('./logs')
     ]
     model.fit(
         train_ds, validation_data=valid_ds, epochs=config.hparams.epochs, callbacks=callbacks
     )
-    tf.keras.models.save_model(model, 'vit.tf', save_format='tf')
+    model.save_weights('./best_ckpt')
 
     # Evaluate
     loss = model.evaluate(test_ds)
@@ -63,7 +65,7 @@ def train(config):
         train_logger.info(f'Job Number: {config.job_num}')
     for metric, value in zip(model.metrics_names, loss):
         train_logger.info(f'{metric}: {value}')
-        if metric == 'f1_score':
+        if metric == 'sparse_top_k_categorical_accuracy':
             final_metric = value
 
     with open_dict(config):
@@ -81,12 +83,8 @@ def main(main_config):
 
         def objective(trial):
             # Define search space
-            patch_size = trial.suggest_categorical(
-                'patch_size', [4, 8, 16]
-            )
-            main_config.hparams.patch_size = (patch_size, patch_size)
             main_config.hparams.n_filters = trial.suggest_int(
-                'n_filters', 128, 512, step=128
+                'n_filters', 256, 512, step=256
             )
             main_config.hparams.norm = trial.suggest_categorical(
                 'norm', [None, 'pre', 'post', 'dual']
@@ -95,7 +93,7 @@ def main(main_config):
                 'n_heads', 1, 3
             )
             main_config.hparams.n_blocks = trial.suggest_int(
-                'n_blocks', 4, 12
+                'n_blocks', 6, 10, step=2
             )
             main_config.hparams.drop_rate = trial.suggest_float(
                 'drop_rate', 0.0, 0.2
@@ -117,11 +115,10 @@ def main(main_config):
         # not to find the best hyperparameters.
         # If you want the best hyperparameters, use TPE sampler.
         search_space = {
-            'patch_size': [4, 8, 16],
-            'n_filters': [32, 64, 96, 128],
+            'n_filters': [256, 512],
             'norm': [None, 'pre', 'post', 'dual'],
             'n_heads': [1, 2, 3],  # 2, 4, 8
-            'n_blocks': [i for i in range(4, 13, 2)],
+            'n_blocks': [i for i in range(6, 11, 2)],
             'drop_rate': [i / 10 for i in range(0, 2)],
         }
         study_name = 'study'

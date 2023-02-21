@@ -12,6 +12,6 @@ So we need to download it and generate samples first.
 
 if __name__ == '__main__':
     train_ds, valid_ds, test_ds = src.load_data(512)
-    
+
     print("Done !!!")
     print("run train.py to train the model")

@@ -32,19 +32,6 @@ class PatchEmbedding(tf.keras.layers.Layer):
     def call(self, inputs: tf.Tensor, **kwargs) -> tf.Tensor:
         return self.forward(inputs)
 
-    def get_config(self):
-        config = super().get_config()
-        config.update({
-            "patch_size": self.patch_size,
-            "n_filters": self.n_filters,
-            "norm": self.norm,
-        })
-        return config
-
-    @classmethod
-    def from_config(cls, config):
-        return cls(**config)
-
 
 class PositionalEncoding(tf.keras.layers.Layer):
     def build(self, input_shape):
@@ -59,14 +46,6 @@ class PositionalEncoding(tf.keras.layers.Layer):
 
     def call(self, inputs: tf.Tensor, **kwargs) -> tf.Tensor:
         return inputs + tf.broadcast_to(self.pe, (tf.shape(inputs)[0], *self.pe.shape[1:]))
-
-    def get_config(self):
-        config = super().get_config()
-        return config
-
-    @classmethod
-    def from_config(cls, config):
-        return cls(**config)
 
 
 class MHSA(tf.keras.layers.Layer):
@@ -94,17 +73,6 @@ class MHSA(tf.keras.layers.Layer):
         out = self.to_out(out)
         return out
 
-    def get_config(self):
-        config = super().get_config()
-        config.update({
-            "n_heads": self.n_heads,
-        })
-        return config
-
-    @classmethod
-    def from_config(cls, config):
-        return cls(**config)
-
 
 class MLP(tf.keras.layers.Layer):
     def __init__(self, expansion_rate: int = 4):
@@ -121,17 +89,6 @@ class MLP(tf.keras.layers.Layer):
         x = self.mlp1(x)
         x = self.mlp2(x)
         return x
-
-    def get_config(self):
-        config = super().get_config()
-        config.update({
-            "expansion_rate": self.expansion_rate,
-        })
-        return config
-
-    @classmethod
-    def from_config(cls, config):
-        return cls(**config)
 
 
 class ViTBlock(tf.keras.layers.Layer):
@@ -150,16 +107,3 @@ class ViTBlock(tf.keras.layers.Layer):
         x = self.spatial_drop([inputs, self.mhsa(inputs)])
         x = self.channel_drop([x, self.mlp(x)])
         return x
-
-    def get_config(self):
-        config = super().get_config()
-        config.update({
-            "n_heads": self.n_heads,
-            "expansion_rate": self.expansion_rate,
-            "drop_rate": self.drop_rate,
-        })
-        return config
-
-    @classmethod
-    def from_config(cls, config):
-        return cls(**config)

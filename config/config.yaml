@@ -2,10 +2,8 @@ hpo:
   True
 
 hparams:
-  patch_size:
-    - 16
-    - 16
-  n_filters: 128
+  patch_size: [16, 16]
+  n_filters: 512
   norm: dual
   n_heads: 8
   n_blocks: 12

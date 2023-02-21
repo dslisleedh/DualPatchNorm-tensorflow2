@@ -34,5 +34,7 @@ def preprocessing(x, y, image_size: int, augment: bool = False):
         x = tf.image.random_flip_up_down(x)
         crop_size = tf.random.uniform(shape=[], minval=image_size - 4, maxval=image_size + 1, dtype=tf.int32)
         x = tf.image.random_crop(x, size=(crop_size, crop_size, 3))
-        x = tf.image.resize(x, size=(image_size, image_size))
+        if crop_size != image_size:
+            x = tf.image.resize(x, size=(image_size, image_size))
+    x = tf.ensure_shape(x, shape=(image_size, image_size, 3))
     return x, y
