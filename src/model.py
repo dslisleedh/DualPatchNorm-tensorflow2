@@ -15,7 +15,7 @@ class ViT(tf.keras.models.Model):
                 config.patch_size, config.n_filters, config.norm
         )
         self.cls_token = tf.Variable(
-            initial_value=tf.random.normal((1, 1, config.n_filters)),
+            initial_value=tf.random.truncated_normal(shape=(1, 1, config.n_filters), stddev=0.02),
             trainable=True, name='cls_token', dtype=tf.float32
         )
         self.positional_encoding = PositionalEncoding()
